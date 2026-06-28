@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBite | Menu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700&family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="Menu.css">
+</head>
+<body>
+    <section class="screen active" id="screen-welcome">
+        <div class="hero welcome-hero">
+            <div class="welcome-copy">
+                <div class="hero-title">SmartBite Menu</div>
+                <div class="hero-sub">Choose your table and start ordering.</div>
+                <div class="table-grid" id="table-grid">
+                    <button class="table-card" data-table="1">Table 1</button>
+                    <button class="table-card" data-table="2">Table 2</button>
+                    <button class="table-card" data-table="3">Table 3</button>
+                    <button class="table-card" data-table="4">Table 4</button>
+                    <button class="table-card" data-table="5">Table 5</button>
+                    <button class="table-card" data-table="6">Table 6</button>
+                </div>
+                <div class="table-legend">
+                    <span class="legend-dot legend-reserved"></span><span>Reserved (order active)</span>
+                    <span class="legend-dot legend-free" style="margin-left:16px;"></span><span>Available</span>
+                </div>
+            </div>
+            <div class="hero-card">
+                <div class="bill-title">Customer Features</div>
+                <ul class="bill-list">
+                    <li class="bill-item">Table selection</li>
+                    <li class="bill-item">Menu items and cart</li>
+                    <li class="bill-item">Send order and payment demo</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reviews Section on Welcome Screen -->
+    <section class="reviews-section" id="reviews-section">
+        <div class="reviews-header">
+            <div>
+                <div class="reviews-title">What Our Guests Say</div>
+                <div class="reviews-sub" id="reviews-avg-line">Be the first to leave a review!</div>
+            </div>
+            <div class="reviews-stars-big" id="reviews-avg-stars"></div>
+        </div>
+        <div class="reviews-grid" id="reviews-grid">
+            <div class="review-empty">No reviews yet. Order, pay, and share your experience!</div>
+        </div>
+    </section>
+
+    <section class="screen" id="screen-menu">
+        <nav>
+            <div class="logo">Smart<span>Bite</span></div>
+            <div class="nav-right">
+                <div class="table-pill" id="table-pill">Table #1</div>
+                <button class="btn-outline" id="back-btn">Change Table</button>
+            </div>
+        </nav>
+
+        <div class="menu-layout" style="padding: 32px 6% 60px;">
+            <section class="menu-panel">
+                <div class="menu-head">
+                    <div>
+                        <div class="menu-title">Menu Items</div>
+                        <div class="bill-sub">Add food to cart and change quantity anytime.</div>
+                    </div>
+                    <label class="search">
+                        <input id="search-input" type="text" placeholder="Search food...">
+                    </label>
+                </div>
+                <div class="grid" id="menu-grid"></div>
+            </section>
+
+            <aside class="bill-panel">
+                <div class="bill-title">Order Summary</div>
+                <div class="bill-sub" id="bill-table">Table #1 - Dine-in</div>
+                <div class="cart-status" id="cart-status">Cart is empty.</div>
+                <ul class="bill-list" id="bill-list">
+                    <li class="bill-item">No items yet</li>
+                </ul>
+                <div class="bill-total">
+                    <div class="bill-item"><span>Subtotal</span><span id="subtotal">NRS 0.00</span></div>
+                    <div class="bill-item"><span>Tax (10%)</span><span id="tax">NRS 0.00</span></div>
+                    <div class="bill-item"><span>Service (5%)</span><span id="service">NRS 0.00</span></div>
+                    <div class="bill-item"><strong>Total</strong><strong id="total">NRS 0.00</strong></div>
+                </div>
+                <div class="bill-actions">
+                    <button class="btn-primary" id="send-btn">Send to Kitchen</button>
+                    <button class="btn-outline" id="pay-btn">Payment Demo</button>
+                </div>
+
+                <div class="sent-order-card">
+                    <div class="sent-order-top">
+                        <div>
+                            <div class="bill-title sent-order-title">Last Order Sent</div>
+                            <div class="bill-sub" id="sent-order-meta">No order sent yet.</div>
+                        </div>
+                        <span class="order-badge" id="sent-order-count">0</span>
+                    </div>
+                    <ul class="bill-list" id="sent-order-list">
+                        <li class="bill-item">Send order to save it.</li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <div class="toast" id="order-toast"></div>
+
+    <div class="payment-modal" id="payment-modal">
+        <div class="payment-dialog">
+            <div class="payment-dialog-top">
+                <div>
+                    <div class="bill-title">Payment Demo</div>
+                    <div class="bill-sub">Select eSewa or Khalti and enter wallet details.</div>
+                </div>
+                <button class="modal-close" id="close-payment-modal" aria-label="Close">x</button>
+            </div>
+
+            <div class="payment-picks">
+                <button class="payment-option active" data-payment="esewa">
+                    <span class="payment-brand esewa-brand">
+                        <span class="brand-logo esewa-logo">e</span>
+                        <span class="payment-name">eSewa</span>
+                    </span>
+                    <span class="payment-copy">Pay by eSewa wallet</span>
+                </button>
+                <button class="payment-option" data-payment="khalti">
+                    <span class="payment-brand khalti-brand">
+                        <span class="brand-logo khalti-logo">K</span>
+                        <span class="payment-name">Khalti</span>
+                    </span>
+                    <span class="payment-copy">Pay by Khalti wallet</span>
+                </button>
+            </div>
+
+            <div class="wallet-preview" id="wallet-preview"></div>
+            <input class="otp-input" id="wallet-id" type="text" placeholder="Wallet number">
+            <input class="otp-input" id="wallet-otp" type="text" inputmode="numeric" placeholder="6-digit OTP">
+            <div class="bill-sub otp-error" id="otp-error"></div>
+            <div class="bill-actions">
+                <button class="btn-primary" id="confirm-wallet-pay">Confirm Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div class="payment-modal" id="review-modal">
+        <div class="payment-dialog review-dialog">
+            <div class="payment-dialog-top">
+                <div>
+                    <div class="bill-title">Rate Your Experience 🌟</div>
+                    <div class="bill-sub">Your feedback helps us improve!</div>
+                </div>
+                <button class="modal-close" id="close-review-modal" aria-label="Close">x</button>
+            </div>
+
+            <div class="star-picker" id="star-picker">
+                <span class="star" data-star="1">★</span>
+                <span class="star" data-star="2">★</span>
+                <span class="star" data-star="3">★</span>
+                <span class="star" data-star="4">★</span>
+                <span class="star" data-star="5">★</span>
+            </div>
+            <div class="star-label" id="star-label">Tap a star to rate</div>
+
+            <input class="otp-input" id="review-name" type="text" placeholder="Your name (optional)">
+            <textarea class="otp-input review-textarea" id="review-comment" placeholder="Tell us about your meal and experience..." rows="3"></textarea>
+            <div class="bill-sub otp-error" id="review-error"></div>
+            <div class="bill-actions">
+                <button class="btn-primary" id="submit-review-btn">Submit Review</button>
+                <button class="btn-ghost" id="skip-review-btn">Skip for now</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const menuItems = [
+            { id: 'burger', name: 'Chicken Burger', price: 280, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500' },
+            { id: 'pizza', name: 'Veg Pizza', price: 540, image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500' },
+            { id: 'pasta', name: 'Creamy Pasta', price: 420, image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500' },
+            { id: 'momo', name: 'Buff Momo', price: 220, image: 'https://images.squarespace-cdn.com/content/v1/55d729cfe4b00ab3960e7989/1469961270168-7BAAAGCW7A6VOZA5QR0A/image-asset.jpeg' },
+            { id: 'drink', name: 'Cold Drink', price: 90, image: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=500' },
+            { id: 'chowmein', name: 'Chicken Chowmein', price: 260, image: 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?w=500' },
+            { id: 'fried-rice', name: 'Veg Fried Rice', price: 240, image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=500' },
+            { id: 'thakali', name: 'Thakali Set', price: 450, image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500' },
+            { id: 'sekwa', name: 'Chicken Sekuwa', price: 390, image: 'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=500' },
+            { id: 'sandwich', name: 'Club Sandwich', price: 230, image: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=500' },
+            { id: 'fries', name: 'French Fries', price: 160, image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500' },
+            { id: 'spring-roll', name: 'Spring Roll', price: 190, image: 'https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=500' },
+            { id: 'paneer', name: 'Paneer Chilli', price: 320, image: 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=500' },
+            { id: 'coffee', name: 'Hot Coffee', price: 120, image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500' },
+            { id: 'tea', name: 'Milk Tea', price: 70, image: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=500' },
+            { id: 'lassi', name: 'Sweet Lassi', price: 140, image: 'https://images.unsplash.com/photo-1626200419199-391ae4be7a41?w=500' },
+            { id: 'ice-cream', name: 'Vanilla Ice Cream', price: 150, image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500' },
+            { id: 'cake', name: 'Chocolate Cake', price: 180, image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500' },
+            { id: 'salad', name: 'Green Salad', price: 170, image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500' }
+        ];
+
+        const cart = {};
+        let currentTable = 1;
+        let selectedPayment = 'eSewa';
+        const sentOrders = JSON.parse(localStorage.getItem('smartbite-sent-orders') || '{}');
+
+        const screens = {
+            welcome: document.getElementById('screen-welcome'),
+            menu: document.getElementById('screen-menu')
+        };
+
+        const menuGrid = document.getElementById('menu-grid');
+        const searchInput = document.getElementById('search-input');
+        const billList = document.getElementById('bill-list');
+        const sentOrderList = document.getElementById('sent-order-list');
+        const sentOrderMeta = document.getElementById('sent-order-meta');
+        const sentOrderCount = document.getElementById('sent-order-count');
+        const cartStatus = document.getElementById('cart-status');
+        const toast = document.getElementById('order-toast');
+        const paymentModal = document.getElementById('payment-modal');
+        const walletPreview = document.getElementById('wallet-preview');
+        const walletId = document.getElementById('wallet-id');
+        const walletOtp = document.getElementById('wallet-otp');
+        const otpError = document.getElementById('otp-error');
+
+        function money(value) {
+            return `NRS ${Number(value).toFixed(2)}`;
+        }
+
+        function showScreen(name) {
+            Object.values(screens).forEach((screen) => screen.classList.remove('active'));
+            screens[name].classList.add('active');
+        }
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 1800);
+        }
+
+        function getOrders() {
+            return JSON.parse(localStorage.getItem('smartbite-orders') || '[]');
+        }
+
+        function saveOrders(orders) {
+            localStorage.setItem('smartbite-orders', JSON.stringify(orders));
+        }
+
+        function saveSentOrders() {
+            localStorage.setItem('smartbite-sent-orders', JSON.stringify(sentOrders));
+        }
+
+        function getCartItems() {
+            return Object.values(cart);
+        }
+
+        function getTotals(items) {
+            const subtotal = items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const tax = subtotal * 0.10;
+            const service = subtotal * 0.05;
+            return {
+                subtotal,
+                tax,
+                service,
+                total: subtotal + tax + service
+            };
+        }
+
+        function setTable(table) {
+            currentTable = table;
+            Object.keys(cart).forEach((key) => delete cart[key]);
+            document.getElementById('table-pill').textContent = `Table #${table}`;
+            document.getElementById('bill-table').textContent = `Table #${table} - Dine-in`;
+            renderCart();
+            renderLastOrder();
+            showScreen('menu');
+        }
+
+        function renderMenu() {
+            const query = searchInput.value.trim().toLowerCase();
+            const filteredItems = menuItems.filter((item) => item.name.toLowerCase().includes(query));
+
+            menuGrid.innerHTML = filteredItems.map((item) => `
+                <div class="card">
+                    <img src="${item.image}" class="card-img" alt="${item.name}">
+                    <div class="card-content">
+                        <div class="card-tag">Menu Item</div>
+                        <h3>${item.name}</h3>
+                        <p class="card-meta">Fresh and ready for your table.</p>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;">
+                            <span class="card-price">${money(item.price)}</span>
+                            <button class="add-to-cart" data-id="${item.id}">Add +</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            if (!filteredItems.length) {
+                menuGrid.innerHTML = `
+                    <div class="card">
+                        <div class="card-content">
+                            <h3>No item found</h3>
+                            <p class="card-meta">Try another search word.</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderCart() {
+            const items = getCartItems();
+            const totals = getTotals(items);
+
+            if (!items.length) {
+                billList.innerHTML = '<li class="bill-item">No items yet</li>';
+                cartStatus.textContent = 'Cart is empty.';
+            } else {
+                billList.innerHTML = items.map((item) => `
+                    <li class="bill-item">
+                        <div>
+                            <div>${item.name}</div>
+                            <div class="bill-sub">${money(item.price)} each</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div>
+                                <button class="qty-btn" data-id="${item.id}" data-change="-1">-</button>
+                                <span class="bill-qty">x${item.qty}</span>
+                                <button class="qty-btn" data-id="${item.id}" data-change="1">+</button>
+                            </div>
+                            <div>${money(item.price * item.qty)}</div>
+                        </div>
+                    </li>
+                `).join('');
+                cartStatus.textContent = `${items.length} item type(s) in cart.`;
+            }
+
+            document.getElementById('subtotal').textContent = money(totals.subtotal);
+            document.getElementById('tax').textContent = money(totals.tax);
+            document.getElementById('service').textContent = money(totals.service);
+            document.getElementById('total').textContent = money(totals.total);
+        }
+
+        function renderLastOrder() {
+            const order = sentOrders[currentTable];
+            if (!order) {
+                sentOrderMeta.textContent = 'No order sent yet.';
+                sentOrderCount.textContent = '0';
+                sentOrderList.innerHTML = '<li class="bill-item">Send order to save it.</li>';
+                return;
+            }
+
+            sentOrderMeta.textContent = `${order.createdAt} | ${order.paymentStatus}`;
+            sentOrderCount.textContent = String(order.items.reduce((sum, item) => sum + item.qty, 0));
+            sentOrderList.innerHTML = order.items.map((item) => `
+                <li class="bill-item">
+                    <span>${item.name} x${item.qty}</span>
+                    <span>${money(item.price * item.qty)}</span>
+                </li>
+            `).join('') + `
+                <li class="bill-item"><strong>Total</strong><strong>${money(order.total)}</strong></li>
+                <li class="bill-item"><span>Payment</span><span>${order.paymentMethod || 'Not paid yet'}</span></li>
+            `;
+        }
+
+        function addToCart(id) {
+            const item = menuItems.find((menuItem) => menuItem.id === id);
+            if (!item) return;
+
+            if (!cart[id]) {
+                cart[id] = { ...item, qty: 0 };
+            }
+            cart[id].qty += 1;
+            renderCart();
+        }
+
+        function changeQty(id, change) {
+            if (!cart[id]) return;
+            cart[id].qty += change;
+            if (cart[id].qty <= 0) {
+                delete cart[id];
+            }
+            renderCart();
+        }
+
+        function sendOrder() {
+            const items = getCartItems();
+            if (!items.length) {
+                showToast('Add items before sending.');
+                return;
+            }
+
+            const totals = getTotals(items);
+            const order = {
+                id: Date.now(),
+                table: currentTable,
+                items: items.map(({ id, name, price, qty }) => ({ id, name, price, qty })),
+                subtotal: Number(totals.subtotal.toFixed(2)),
+                tax: Number(totals.tax.toFixed(2)),
+                service: Number(totals.service.toFixed(2)),
+                total: Number(totals.total.toFixed(2)),
+                status: 'Pending',
+                paymentStatus: 'Unpaid',
+                paymentMethod: '',
+                walletNumber: '',
+                paidAt: '',
+                createdAt: new Date().toLocaleTimeString()
+            };
+
+            const orders = getOrders();
+            orders.unshift(order);
+            saveOrders(orders);
+            sentOrders[currentTable] = order;
+            saveSentOrders();
+
+            Object.keys(cart).forEach((key) => delete cart[key]);
+            renderCart();
+            renderLastOrder();
+            showToast(`Order sent from Table #${currentTable}.`);
+        }
+
+        function openPayment() {
+            const order = sentOrders[currentTable];
+            if (!order) {
+                showToast('Send order before payment.');
+                return;
+            }
+
+            otpError.textContent = '';
+            walletId.value = '';
+            walletOtp.value = '';
+            walletPreview.innerHTML = `
+                <span class="payment-brand ${selectedPayment === 'Khalti' ? 'khalti-brand' : 'esewa-brand'}">
+                    <span class="brand-logo ${selectedPayment === 'Khalti' ? 'khalti-logo' : 'esewa-logo'}">${selectedPayment === 'Khalti' ? 'K' : 'e'}</span>
+                    <span class="payment-name">${selectedPayment}</span>
+                </span>
+                <span class="bill-sub">Total ${money(order.total)}</span>
+            `;
+            paymentModal.classList.add('show');
+        }
+
+        function confirmPayment() {
+            const order = sentOrders[currentTable];
+            if (!order) return;
+            if (walletId.value.trim().length < 8) {
+                otpError.textContent = 'Enter valid wallet number.';
+                return;
+            }
+            if (!/^\d{6}$/.test(walletOtp.value.trim())) {
+                otpError.textContent = 'Enter 6-digit OTP.';
+                return;
+            }
+
+            const orders = getOrders();
+            const saved = orders.find((item) => item.id === order.id);
+            const paidAt = new Date().toLocaleTimeString();
+
+            [order, saved].forEach((item) => {
+                if (!item) return;
+                item.paymentStatus = 'Paid';
+                item.paymentMethod = selectedPayment;
+                item.walletNumber = walletId.value.trim();
+                item.paidAt = paidAt;
+            });
+
+            saveOrders(orders);
+            saveSentOrders();
+            paymentModal.classList.remove('show');
+            renderLastOrder();
+            showToast(`Payment saved for Table #${currentTable}.`);
+            // Open review modal after payment
+            setTimeout(() => openReviewModal(), 600);
+        }
+
+        // ── Review System ──────────────────────────────────────
+        let selectedStars = 0;
+        const reviewModal = document.getElementById('review-modal');
+        const starPicker = document.getElementById('star-picker');
+        const starLabel = document.getElementById('star-label');
+        const starLabels = ['', 'Poor 😞', 'Fair 😐', 'Good 🙂', 'Great 😊', 'Excellent 🤩'];
+
+        function openReviewModal() {
+            selectedStars = 0;
+            document.getElementById('review-name').value = '';
+            document.getElementById('review-comment').value = '';
+            document.getElementById('review-error').textContent = '';
+            updateStarUI(0);
+            reviewModal.classList.add('show');
+        }
+
+        function updateStarUI(count) {
+            starPicker.querySelectorAll('.star').forEach((s, i) => {
+                s.classList.toggle('active', i < count);
+            });
+            starLabel.textContent = count ? starLabels[count] : 'Tap a star to rate';
+        }
+
+        starPicker.addEventListener('mouseover', (e) => {
+            const s = e.target.closest('.star');
+            if (s) updateStarUI(Number(s.dataset.star));
+        });
+        starPicker.addEventListener('mouseleave', () => updateStarUI(selectedStars));
+        starPicker.addEventListener('click', (e) => {
+            const s = e.target.closest('.star');
+            if (s) {
+                selectedStars = Number(s.dataset.star);
+                updateStarUI(selectedStars);
+            }
+        });
+
+        function getReviews() {
+            return JSON.parse(localStorage.getItem('smartbite-reviews') || '[]');
+        }
+
+        function saveReviews(reviews) {
+            localStorage.setItem('smartbite-reviews', JSON.stringify(reviews));
+        }
+
+        function renderReviews() {
+            const reviews = getReviews();
+            const grid = document.getElementById('reviews-grid');
+            const avgLine = document.getElementById('reviews-avg-line');
+            const avgStars = document.getElementById('reviews-avg-stars');
+
+            if (!reviews.length) {
+                grid.innerHTML = '<div class="review-empty">No reviews yet. Order, pay, and share your experience!</div>';
+                avgLine.textContent = 'Be the first to leave a review!';
+                avgStars.textContent = '';
+                return;
+            }
+
+            const avg = (reviews.reduce((s, r) => s + r.stars, 0) / reviews.length).toFixed(1);
+            avgLine.textContent = `${reviews.length} review${reviews.length > 1 ? 's' : ''} · Average rating`;
+            avgStars.innerHTML = `${'★'.repeat(Math.round(avg))}<span style="color:#aaa">${'★'.repeat(5 - Math.round(avg))}</span> <span class="avg-num">${avg}</span>`;
+
+            grid.innerHTML = reviews.slice().reverse().map((r) => `
+                <div class="review-card">
+                    <div class="review-top">
+                        <div class="review-stars">${'★'.repeat(r.stars)}<span style="color:#ddd">${'★'.repeat(5 - r.stars)}</span></div>
+                        <div class="review-date">${r.date}</div>
+                    </div>
+                    <div class="review-name">${r.name || 'Anonymous Guest'} · Table #${r.table}</div>
+                    ${r.comment ? `<div class="review-comment">"${r.comment}"</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('submit-review-btn').addEventListener('click', () => {
+            if (!selectedStars) {
+                document.getElementById('review-error').textContent = 'Please select a star rating.';
+                return;
+            }
+            const reviews = getReviews();
+            reviews.push({
+                stars: selectedStars,
+                name: document.getElementById('review-name').value.trim(),
+                comment: document.getElementById('review-comment').value.trim(),
+                table: currentTable,
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            });
+            saveReviews(reviews);
+            reviewModal.classList.remove('show');
+            showToast('Thank you for your review! ⭐');
+            renderReviews();
+        });
+
+        document.getElementById('skip-review-btn').addEventListener('click', () => reviewModal.classList.remove('show'));
+        document.getElementById('close-review-modal').addEventListener('click', () => reviewModal.classList.remove('show'));
+        reviewModal.addEventListener('click', (e) => { if (e.target === reviewModal) reviewModal.classList.remove('show'); });
+        // ── End Review System ──────────────────────────────────
+
+        function getReservedTables() {
+            const orders = getOrders();
+            const reserved = new Set();
+            orders.forEach((order) => {
+                if (order.status !== 'Completed') {
+                    reserved.add(String(order.table));
+                }
+            });
+            return reserved;
+        }
+
+        function updateTableStatus() {
+            const reserved = getReservedTables();
+            document.querySelectorAll('#table-grid [data-table]').forEach((btn) => {
+                const tableNum = btn.dataset.table;
+                if (reserved.has(tableNum)) {
+                    btn.classList.add('reserved');
+                    btn.title = `Table ${tableNum} is currently occupied`;
+                } else {
+                    btn.classList.remove('reserved');
+                    btn.title = '';
+                }
+            });
+        }
+
+        document.getElementById('table-grid').addEventListener('click', (event) => {
+            const button = event.target.closest('[data-table]');
+            if (button) setTable(Number(button.dataset.table));
+        });
+
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'smartbite-orders') {
+                updateTableStatus();
+            }
+        });
+
+        setInterval(updateTableStatus, 3000);
+        updateTableStatus();
+
+        searchInput.addEventListener('input', renderMenu);
+
+        menuGrid.addEventListener('click', (event) => {
+            const button = event.target.closest('.add-to-cart');
+            if (button) addToCart(button.dataset.id);
+        });
+
+        billList.addEventListener('click', (event) => {
+            const button = event.target.closest('.qty-btn');
+            if (button) changeQty(button.dataset.id, Number(button.dataset.change));
+        });
+
+        document.querySelectorAll('.payment-option').forEach((button) => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.payment-option').forEach((item) => item.classList.remove('active'));
+                button.classList.add('active');
+                selectedPayment = button.dataset.payment === 'khalti' ? 'Khalti' : 'eSewa';
+            });
+        });
+
+        document.getElementById('send-btn').addEventListener('click', sendOrder);
+        document.getElementById('pay-btn').addEventListener('click', openPayment);
+        document.getElementById('confirm-wallet-pay').addEventListener('click', confirmPayment);
+        document.getElementById('close-payment-modal').addEventListener('click', () => paymentModal.classList.remove('show'));
+        document.getElementById('back-btn').addEventListener('click', () => showScreen('welcome'));
+        paymentModal.addEventListener('click', (event) => {
+            if (event.target === paymentModal) {
+                paymentModal.classList.remove('show');
+            }
+        });
+
+        renderMenu();
+        renderCart();
+        renderLastOrder();
+        renderReviews();
+    </script>
+</body>
+</html>

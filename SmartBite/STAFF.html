@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBite | Admin Dashboard</title>
+
+    <!-- External Assets (Requires Internet) -->
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700&family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="Menu.css">
+</head>
+<body>
+    <section class="screen active" id="staff-login">
+        <div class="hero">
+            <div class="hero-card">
+                <div class="hero-title">Admin Login</div>
+                <div class="hero-sub">Only admin can access the order and billing page.</div>
+                <div class="hero-actions">
+                    <input id="staff-user" type="text" placeholder="Admin username" class="table-card" style="text-align:left;">
+                    <input id="staff-pass" type="password" placeholder="Admin password" class="table-card" style="text-align:left;">
+                    <button class="btn-primary" id="staff-login-btn">Open Admin Page</button>
+                </div>
+                <div class="bill-sub" id="staff-error" style="color:#c0392b; margin-top:10px;"></div>
+            </div>
+            <div>
+                <div class="hero-title">SmartBite Admin</div>
+                <div class="hero-sub">See placed orders, review bills, and manage order progress in one dashboard.</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="screen" id="staff-dashboard">
+        <nav>
+            <div class="logo">Smart<span>Bite</span></div>
+            <div class="nav-right">
+                <div class="table-pill">Admin Dashboard</div>
+                <button class="btn-outline" id="clear-orders">Clear All</button>
+            </div>
+        </nav>
+
+        <section class="dashboard">
+            <div class="dashboard-head">
+                <div>
+                    <div class="menu-title">Placed Orders & Bills</div>
+                    <div class="bill-sub">Live customer orders with bill totals, payment state, and order controls.</div>
+                </div>
+            </div>
+
+            <div class="kitchen-alert" id="kitchen-alert">
+                <div class="kitchen-alert-top">
+                    <div>
+                        <div class="kitchen-alert-title">Latest Table Order</div>
+                        <div class="bill-sub" id="kitchen-alert-meta">No new orders yet.</div>
+                    </div>
+                    <span class="order-badge" id="kitchen-alert-count">0</span>
+                </div>
+                <ul class="order-list" id="kitchen-alert-items">
+                    <li>Waiting for the next table order.</li>
+                </ul>
+            </div>
+
+            <div class="dashboard-grid" id="orders-grid">
+                <div class="order-card">
+                    <div class="order-top">
+                        <span>Waiting for orders</span>
+                        <span class="order-badge">0</span>
+                    </div>
+                    <ul class="order-list">
+                        <li>No orders yet. Send one from the menu screen.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </section>
+
+    <div class="toast info" id="staff-toast">New order received</div>
+
+    <script>
+        const loginScreen = document.getElementById('staff-login');
+        const dashboardScreen = document.getElementById('staff-dashboard');
+        const loginBtn = document.getElementById('staff-login-btn');
+        const staffError = document.getElementById('staff-error');
+        const userInput = document.getElementById('staff-user');
+        const passInput = document.getElementById('staff-pass');
+        const ordersGrid = document.getElementById('orders-grid');
+        const clearBtn = document.getElementById('clear-orders');
+        const kitchenAlert = document.getElementById('kitchen-alert');
+        const kitchenAlertMeta = document.getElementById('kitchen-alert-meta');
+        const kitchenAlertCount = document.getElementById('kitchen-alert-count');
+        const kitchenAlertItems = document.getElementById('kitchen-alert-items');
+        let audioCtx = null;
+
+        const STAFF_USER = 'admin';
+        const STAFF_PASS = 'admin123';
+
+        function showDashboard() {
+            loginScreen.classList.remove('active');
+            dashboardScreen.classList.add('active');
+        }
+
+        function showLogin() {
+            dashboardScreen.classList.remove('active');
+            loginScreen.classList.add('active');
+        }
+
+        function formatMoney(value) {
+            return `NRS ${Number(value).toFixed(2)}`;
+        }
+
+        function getOrders() {
+            return JSON.parse(localStorage.getItem('smartbite-orders') || '[]');
+        }
+
+        function saveOrders(orders) {
+            localStorage.setItem('smartbite-orders', JSON.stringify(orders));
+        }
+
+        function updateKitchenAlert(order) {
+            if (!order) {
+                kitchenAlert.classList.remove('active');
+                kitchenAlertMeta.textContent = 'No new orders yet.';
+                kitchenAlertCount.textContent = '0';
+                kitchenAlertItems.innerHTML = '<li>Waiting for the next table order.</li>';
+                return;
+            }
+
+            kitchenAlert.classList.add('active');
+            const paymentLabel = order.paymentStatus || 'Unpaid';
+            kitchenAlertMeta.textContent = `Table #${order.table} sent ${order.createdAt} • ${order.status || 'Pending'} • ${paymentLabel}`;
+            kitchenAlertCount.textContent = String(order.items.length);
+            kitchenAlertItems.innerHTML = order.items
+                .map((item) => `<li>${item.name} x${item.qty}</li>`)
+                .join('');
+        }
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playAlertSound() {
+            if (!audioCtx) return;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.2, audioCtx.currentTime + 0.02);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.25);
+            oscillator.connect(gainNode).connect(audioCtx.destination);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.25);
+        }
+
+        let lastSeenOrderId = Number(sessionStorage.getItem('smartbite-last-seen') || '0');
+        let lastCount = 0;
+
+        function getBillRows(order) {
+            const subtotal = Number(order.subtotal || 0);
+            const tax = Number(order.tax || subtotal * 0.10);
+            const service = Number(order.service || subtotal * 0.05);
+
+            return `
+                <div class="bill-total">
+                    <div class="bill-item"><span>Subtotal</span><span>${formatMoney(subtotal)}</span></div>
+                    <div class="bill-item"><span>Tax</span><span>${formatMoney(tax)}</span></div>
+                    <div class="bill-item"><span>Service</span><span>${formatMoney(service)}</span></div>
+                    <div class="bill-item"><strong>Total Bill</strong><strong>${formatMoney(order.total)}</strong></div>
+                </div>
+            `;
+        }
+
+        function renderOrders(highlightUntilId = 0) {
+            const orders = getOrders();
+            ordersGrid.innerHTML = '';
+
+            if (orders.length === 0) {
+                updateKitchenAlert(null);
+                ordersGrid.innerHTML = `
+                    <div class="order-card">
+                        <div class="order-top">
+                            <span>Waiting for orders</span>
+                            <span class="order-badge">0</span>
+                        </div>
+                        <ul class="order-list">
+                            <li>No orders yet. Send one from the menu screen.</li>
+                        </ul>
+                    </div>
+                `;
+                return;
+            }
+
+            updateKitchenAlert(orders[0]);
+
+            orders.forEach((order) => {
+                const card = document.createElement('div');
+                const isNew = order.id >= highlightUntilId && highlightUntilId !== 0;
+                card.className = isNew ? 'order-card new' : 'order-card';
+                const items = order.items.map((item) => `<li>${item.name} x${item.qty}</li>`).join('');
+                const status = order.status || 'Pending';
+                const paymentStatus = order.paymentStatus || 'Unpaid';
+                const paymentMethod = order.paymentMethod || 'Not selected';
+                const walletNumber = order.walletNumber || 'Not paid yet';
+                const paidAt = order.paidAt || 'Not paid yet';
+                card.innerHTML = `
+                    <div class="order-top">
+                        <span>Table #${order.table}</span>
+                        <span class="order-badge">${order.createdAt}</span>
+                    </div>
+                    <div class="bill-sub" style="margin-top:10px;">
+                        Table Status: <strong style="color:${status === 'Completed' ? '#6a6f7a' : '#28a745'};">
+                            ${status === 'Completed' ? '⬜ Available' : '🟢 Reserved'}
+                        </strong>
+                    </div>
+                    <div class="bill-sub">Order Status: <strong>${status}</strong></div>
+                    <div class="bill-sub">Payment Status: <strong>${paymentStatus}</strong></div>
+                    <div class="bill-sub">Payment Method: <strong>${paymentMethod}</strong></div>
+                    <div class="bill-sub">Wallet Number: <strong>${walletNumber}</strong></div>
+                    <div class="bill-sub">Paid Time: <strong>${paidAt}</strong></div>
+                    <ul class="order-list">
+                        ${items}
+                    </ul>
+                    ${getBillRows(order)}
+                    <div class="bill-actions">
+                        <button class="btn-outline" data-action="toggle-payment" data-id="${order.id}">
+                            ${paymentStatus === 'Paid' ? 'Mark Unpaid' : 'Mark Paid'}
+                        </button>
+                        <button class="btn-primary" data-action="toggle-status" data-id="${order.id}">
+                            ${status === 'Completed' ? 'Set Pending' : 'Mark Completed'}
+                        </button>
+                        <button class="btn-ghost" data-action="delete" data-id="${order.id}">Remove Order</button>
+                    </div>
+                `;
+                ordersGrid.appendChild(card);
+            });
+        }
+
+        loginBtn.addEventListener('click', () => {
+            initAudio();
+            const user = userInput.value.trim();
+            const pass = passInput.value.trim();
+            if (user === STAFF_USER && pass === STAFF_PASS) {
+                staffError.textContent = '';
+                sessionStorage.setItem('smartbite-auth', 'true');
+                sessionStorage.setItem('smartbite-role', 'admin');
+                showDashboard();
+                renderOrders();
+            } else {
+                staffError.textContent = 'Invalid credentials.';
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            initAudio();
+            localStorage.removeItem('smartbite-orders');
+            sessionStorage.removeItem('smartbite-last-seen');
+            lastSeenOrderId = 0;
+            lastCount = 0;
+            renderOrders();
+        });
+
+        if (sessionStorage.getItem('smartbite-auth') === 'true' && sessionStorage.getItem('smartbite-role') === 'admin') {
+            showDashboard();
+        } else {
+            showLogin();
+        }
+
+        ordersGrid.addEventListener('click', (event) => {
+            const button = event.target.closest('button[data-action]');
+            if (!button) return;
+
+            const action = button.dataset.action;
+            const orderId = Number(button.dataset.id);
+            const orders = getOrders();
+            const order = orders.find((item) => item.id === orderId);
+
+            if (!order) return;
+
+            if (action === 'toggle-payment') {
+                const isPaid = (order.paymentStatus || 'Unpaid') === 'Paid';
+                order.paymentStatus = isPaid ? 'Unpaid' : 'Paid';
+                if (isPaid) {
+                    order.paymentMethod = '';
+                    order.walletNumber = '';
+                    order.paidAt = '';
+                } else {
+                    order.paymentMethod = order.paymentMethod || 'Cash Counter';
+                    order.walletNumber = order.walletNumber || `Table ${order.table}`;
+                    order.paidAt = order.paidAt || new Date().toLocaleTimeString();
+                }
+                saveOrders(orders);
+                showToast(`Table #${order.table} payment is ${order.paymentStatus}`);
+            }
+
+            if (action === 'toggle-status') {
+                order.status = (order.status || 'Pending') === 'Completed' ? 'Pending' : 'Completed';
+                saveOrders(orders);
+                showToast(`Table #${order.table} order is ${order.status}`);
+            }
+
+            if (action === 'delete') {
+                const filteredOrders = orders.filter((item) => item.id !== orderId);
+                saveOrders(filteredOrders);
+                showToast(`Removed order for Table #${order.table}`);
+            }
+
+            renderOrders();
+        });
+
+        function showToast(message) {
+            const toast = document.getElementById('staff-toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function handleIncomingOrders(notify) {
+            const orders = getOrders();
+            const newCount = orders.length;
+            const newestId = orders.length ? orders[0].id : 0;
+
+            if (newCount > lastCount && newestId > lastSeenOrderId) {
+                if (notify) {
+                    initAudio();
+                    playAlertSound();
+                    showToast(`New order from Table #${orders[0].table}`);
+                }
+                lastSeenOrderId = newestId;
+                sessionStorage.setItem('smartbite-last-seen', String(lastSeenOrderId));
+                renderOrders(newestId);
+            } else {
+                renderOrders();
+            }
+
+            lastCount = newCount;
+        }
+
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'smartbite-orders') {
+                handleIncomingOrders(true);
+            }
+        });
+
+        renderOrders();
+        handleIncomingOrders(false);
+        setInterval(() => handleIncomingOrders(false), 3000);
+    </script>
+</body>
+</html>
