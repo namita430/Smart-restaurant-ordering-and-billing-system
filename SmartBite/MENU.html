@@ -1,12 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartBite | Menu</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700&family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700&family=Space+Grotesk:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="Menu.css">
+    <!-- Firebase SDK (CDN version, no npm needed) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import {
+            getDatabase, ref, set, get, push, onValue, update, remove
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCp6wmDZIJtRyCSw7_8JYQLmPENj3COVg0",
+            authDomain: "smartbite-70858.firebaseapp.com",
+            databaseURL: "https://smartbite-70858-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "smartbite-70858",
+            storageBucket: "smartbite-70858.firebasestorage.app",
+            messagingSenderId: "782282703979",
+            appId: "1:782282703979:web:81414cbe7492d4c227dd2e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // We'll expose these to the rest of our code in the next step
+        window.firebaseDB = db;
+        window.fbRef = ref;
+        window.fbSet = set;
+        window.fbGet = get;
+        window.fbPush = push;
+        window.fbOnValue = onValue;
+        window.fbUpdate = update;
+        window.fbRemove = remove;
+        window.firebaseReady = true;
+        window.dispatchEvent(new Event('firebase-ready'));
+    </script>
+
 </head>
+
 <body>
     <section class="screen active" id="screen-welcome">
         <div class="hero welcome-hero">
@@ -14,12 +51,7 @@
                 <div class="hero-title">SmartBite Menu</div>
                 <div class="hero-sub">Choose your table and start ordering.</div>
                 <div class="table-grid" id="table-grid">
-                    <button class="table-card" data-table="1">Table 1</button>
-                    <button class="table-card" data-table="2">Table 2</button>
-                    <button class="table-card" data-table="3">Table 3</button>
-                    <button class="table-card" data-table="4">Table 4</button>
-                    <button class="table-card" data-table="5">Table 5</button>
-                    <button class="table-card" data-table="6">Table 6</button>
+                    <!-- Table buttons are generated live from Firebase -->
                 </div>
                 <div class="table-legend">
                     <span class="legend-dot legend-reserved"></span><span>Reserved (order active)</span>
@@ -34,20 +66,6 @@
                     <li class="bill-item">Send order and payment demo</li>
                 </ul>
             </div>
-        </div>
-    </section>
-
-    <!-- Reviews Section on Welcome Screen -->
-    <section class="reviews-section" id="reviews-section">
-        <div class="reviews-header">
-            <div>
-                <div class="reviews-title">What Our Guests Say</div>
-                <div class="reviews-sub" id="reviews-avg-line">Be the first to leave a review!</div>
-            </div>
-            <div class="reviews-stars-big" id="reviews-avg-stars"></div>
-        </div>
-        <div class="reviews-grid" id="reviews-grid">
-            <div class="review-empty">No reviews yet. Order, pay, and share your experience!</div>
         </div>
     </section>
 
@@ -68,7 +86,7 @@
                         <div class="bill-sub">Add food to cart and change quantity anytime.</div>
                     </div>
                     <label class="search">
-                        <input id="search-input" type="text" placeholder="Search food...">
+                        <input id="search-input" type="text" placeholder="🔍 Search menu items...">
                     </label>
                 </div>
                 <div class="grid" id="menu-grid"></div>
@@ -107,7 +125,38 @@
             </aside>
         </div>
     </section>
+    <!-- Reviews at bottom of menu page -->
+    <section class="reviews-section" id="reviews-section">
 
+        <!-- Summary Bar -->
+        <div class="reviews-summary">
+            <div class="reviews-summary-left">
+                <div class="reviews-title">What Our Guests Say</div>
+                <div class="reviews-avg-line" id="reviews-avg-line">Be the first to leave a review!</div>
+            </div>
+            <div class="reviews-summary-right">
+                <div class="reviews-big-score" id="reviews-big-score"></div>
+                <div class="reviews-stars-big" id="reviews-avg-stars"></div>
+            </div>
+        </div>
+        <!-- Star Filter -->
+        <div class="reviews-filter">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="5">★★★★★</button>
+            <button class="filter-btn" data-filter="4">★★★★</button>
+            <button class="filter-btn" data-filter="3">★★★</button>
+            <button class="filter-btn" data-filter="2">★★</button>
+            <button class="filter-btn" data-filter="1">★</button>
+        </div>
+
+        <!-- Review Cards -->
+        <div class="reviews-list" id="reviews-grid">
+            <div class="review-empty">No reviews yet. Order, pay, and share your experience!</div>
+        </div>
+
+    </section>
+
+    </section>
     <div class="toast" id="order-toast"></div>
 
     <div class="payment-modal" id="payment-modal">
@@ -168,7 +217,8 @@
             <div class="star-label" id="star-label">Tap a star to rate</div>
 
             <input class="otp-input" id="review-name" type="text" placeholder="Your name (optional)">
-            <textarea class="otp-input review-textarea" id="review-comment" placeholder="Tell us about your meal and experience..." rows="3"></textarea>
+            <textarea class="otp-input review-textarea" id="review-comment"
+                placeholder="Tell us about your meal and experience..." rows="3"></textarea>
             <div class="bill-sub otp-error" id="review-error"></div>
             <div class="bill-actions">
                 <button class="btn-primary" id="submit-review-btn">Submit Review</button>
@@ -178,28 +228,32 @@
     </div>
 
     <script>
-        const menuItems = [
-            { id: 'burger', name: 'Chicken Burger', price: 280, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500' },
-            { id: 'pizza', name: 'Veg Pizza', price: 540, image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500' },
-            { id: 'pasta', name: 'Creamy Pasta', price: 420, image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500' },
-            { id: 'momo', name: 'Buff Momo', price: 220, image: 'https://images.squarespace-cdn.com/content/v1/55d729cfe4b00ab3960e7989/1469961270168-7BAAAGCW7A6VOZA5QR0A/image-asset.jpeg' },
-            { id: 'drink', name: 'Cold Drink', price: 90, image: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=500' },
-            { id: 'chowmein', name: 'Chicken Chowmein', price: 260, image: 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?w=500' },
-            { id: 'fried-rice', name: 'Veg Fried Rice', price: 240, image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=500' },
-            { id: 'thakali', name: 'Thakali Set', price: 450, image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500' },
-            { id: 'sekwa', name: 'Chicken Sekuwa', price: 390, image: 'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=500' },
-            { id: 'sandwich', name: 'Club Sandwich', price: 230, image: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=500' },
-            { id: 'fries', name: 'French Fries', price: 160, image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500' },
-            { id: 'spring-roll', name: 'Spring Roll', price: 190, image: 'https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=500' },
-            { id: 'paneer', name: 'Paneer Chilli', price: 320, image: 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=500' },
-            { id: 'coffee', name: 'Hot Coffee', price: 120, image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500' },
-            { id: 'tea', name: 'Milk Tea', price: 70, image: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=500' },
-            { id: 'lassi', name: 'Sweet Lassi', price: 140, image: 'https://images.unsplash.com/photo-1626200419199-391ae4be7a41?w=500' },
-            { id: 'ice-cream', name: 'Vanilla Ice Cream', price: 150, image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500' },
-            { id: 'cake', name: 'Chocolate Cake', price: 180, image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500' },
-            { id: 'salad', name: 'Green Salad', price: 170, image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500' }
-        ];
+        let menuItems = [];   // will be populated live from Firebase
 
+        function startMenuListener() {
+            const menuRef = window.fbRef(window.firebaseDB, 'menu');
+
+            window.fbOnValue(menuRef, (snapshot) => {
+                const data = snapshot.val();
+
+                if (!data) {
+                    menuItems = [];
+                } else {
+                    menuItems = Object.entries(data).map(([id, item]) => ({
+                        id,
+                        ...item
+                    }));
+                }
+
+                renderMenu();
+            });
+        }
+
+        if (window.firebaseReady) {
+            startMenuListener();           // Firebase already loaded, run immediately
+        } else {
+            window.addEventListener('firebase-ready', startMenuListener);  // wait for it
+        }
         const cart = {};
         let currentTable = 1;
         let selectedPayment = 'eSewa';
@@ -231,6 +285,7 @@
         function showScreen(name) {
             Object.values(screens).forEach((screen) => screen.classList.remove('active'));
             screens[name].classList.add('active');
+
         }
 
         function showToast(message) {
@@ -383,7 +438,7 @@
             renderCart();
         }
 
-        function sendOrder() {
+        async function sendOrder() {
             const items = getCartItems();
             if (!items.length) {
                 showToast('Add items before sending.');
@@ -392,7 +447,6 @@
 
             const totals = getTotals(items);
             const order = {
-                id: Date.now(),
                 table: currentTable,
                 items: items.map(({ id, name, price, qty }) => ({ id, name, price, qty })),
                 subtotal: Number(totals.subtotal.toFixed(2)),
@@ -404,13 +458,17 @@
                 paymentMethod: '',
                 walletNumber: '',
                 paidAt: '',
-                createdAt: new Date().toLocaleTimeString()
+                createdAt: new Date().toLocaleTimeString(),
+                timestamp: Date.now()
             };
 
-            const orders = getOrders();
-            orders.unshift(order);
-            saveOrders(orders);
-            sentOrders[currentTable] = order;
+            // Write the order to Firebase instead of localStorage
+            const ordersRef = window.fbRef(window.firebaseDB, 'orders');
+            const newOrderRef = window.fbPush(ordersRef);
+            await window.fbSet(newOrderRef, order);
+
+            // Keep a local copy just for "Last Order Sent" display + payment flow
+            sentOrders[currentTable] = { id: newOrderRef.key, ...order };
             saveSentOrders();
 
             Object.keys(cart).forEach((key) => delete cart[key]);
@@ -545,43 +603,76 @@
             `).join('');
         }
 
-        document.getElementById('submit-review-btn').addEventListener('click', () => {
+        document.getElementById('submit-review-btn').addEventListener('click', async () => {
             if (!selectedStars) {
                 document.getElementById('review-error').textContent = 'Please select a star rating.';
                 return;
             }
-            const reviews = getReviews();
-            reviews.push({
+
+            const submitBtn = document.getElementById('submit-review-btn');
+            submitBtn.textContent = 'Saving...';
+            submitBtn.disabled = true;
+
+            const review = {
                 stars: selectedStars,
                 name: document.getElementById('review-name').value.trim(),
                 comment: document.getElementById('review-comment').value.trim(),
                 table: currentTable,
-                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-            });
-            saveReviews(reviews);
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                timestamp: Date.now()
+            };
+
+            // Save to Firebase
+            const reviewsRef = window.fbRef(window.firebaseDB, 'reviews');
+            const newReviewRef = window.fbPush(reviewsRef);
+            await window.fbSet(newReviewRef, review);
+
             reviewModal.classList.remove('show');
             showToast('Thank you for your review! ⭐');
-            renderReviews();
+            submitBtn.textContent = 'Submit Review';
+            submitBtn.disabled = false;
         });
 
         document.getElementById('skip-review-btn').addEventListener('click', () => reviewModal.classList.remove('show'));
         document.getElementById('close-review-modal').addEventListener('click', () => reviewModal.classList.remove('show'));
         reviewModal.addEventListener('click', (e) => { if (e.target === reviewModal) reviewModal.classList.remove('show'); });
         // ── End Review System ──────────────────────────────────
+        let allTables = [];   // live mirror of Firebase tables
 
-        function getReservedTables() {
-            const orders = getOrders();
+        function renderTableGrid() {
+            const grid = document.getElementById('table-grid');
+            if (!allTables.length) {
+                grid.innerHTML = '<div class="bill-sub">No tables available yet.</div>';
+                return;
+            }
+            // Sort tables by number for consistent order
+            const sorted = [...allTables].sort((a, b) => a.number - b.number);
+            grid.innerHTML = sorted.map((t) => `
+        <button class="table-card" data-table="${t.number}">Table ${t.number}</button>
+    `).join('');
+            updateTableStatus();   // re-apply reserved/available colors after redraw
+        }
+
+        function startTablesListener() {
+            const tablesRef = window.fbRef(window.firebaseDB, 'tables');
+            window.fbOnValue(tablesRef, (snapshot) => {
+                const data = snapshot.val();
+                allTables = data
+                    ? Object.entries(data).map(([id, t]) => ({ id, ...t }))
+                    : [];
+                renderTableGrid();
+            });
+        }
+        let allOrders = [];   // live mirror of Firebase orders, kept in memory
+
+        function updateTableStatus() {
             const reserved = new Set();
-            orders.forEach((order) => {
+            allOrders.forEach((order) => {
                 if (order.status !== 'Completed') {
                     reserved.add(String(order.table));
                 }
             });
-            return reserved;
-        }
 
-        function updateTableStatus() {
-            const reserved = getReservedTables();
             document.querySelectorAll('#table-grid [data-table]').forEach((btn) => {
                 const tableNum = btn.dataset.table;
                 if (reserved.has(tableNum)) {
@@ -594,20 +685,32 @@
             });
         }
 
+        function startOrdersListener() {
+            const ordersRef = window.fbRef(window.firebaseDB, 'orders');
+            window.fbOnValue(ordersRef, (snapshot) => {
+                const data = snapshot.val();
+                allOrders = data
+                    ? Object.entries(data).map(([id, order]) => ({ id, ...order }))
+                    : [];
+                updateTableStatus();
+            });
+        }
+
         document.getElementById('table-grid').addEventListener('click', (event) => {
             const button = event.target.closest('[data-table]');
             if (button) setTable(Number(button.dataset.table));
         });
 
-        window.addEventListener('storage', (event) => {
-            if (event.key === 'smartbite-orders') {
-                updateTableStatus();
-            }
-        });
+        function initFirebaseListeners() {
+            startOrdersListener();
+            startTablesListener();
+        }
 
-        setInterval(updateTableStatus, 3000);
-        updateTableStatus();
-
+        if (window.firebaseReady) {
+            initFirebaseListeners();
+        } else {
+            window.addEventListener('firebase-ready', initFirebaseListeners);
+        }
         searchInput.addEventListener('input', renderMenu);
 
         menuGrid.addEventListener('click', (event) => {
@@ -645,4 +748,5 @@
         renderReviews();
     </script>
 </body>
+
 </html>

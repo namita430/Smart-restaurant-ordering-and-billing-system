@@ -1,14 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartBite | Admin Dashboard</title>
 
     <!-- External Assets (Requires Internet) -->
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700&family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700&family=Space+Grotesk:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="Menu.css">
+    <!-- Firebase SDK (CDN version, no npm needed) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import {
+            getDatabase, ref, set, get, push, onValue, update, remove
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCp6wmDZIJtRyCSw7_8JYQLmPENj3COVg0",
+            authDomain: "smartbite-70858.firebaseapp.com",
+            databaseURL: "https://smartbite-70858-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "smartbite-70858",
+            storageBucket: "smartbite-70858.firebasestorage.app",
+            messagingSenderId: "782282703979",
+            appId: "1:782282703979:web:81414cbe7492d4c227dd2e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.firebaseDB = db;
+        window.fbRef = ref;
+        window.fbSet = set;
+        window.fbGet = get;
+        window.fbPush = push;
+        window.fbOnValue = onValue;
+        window.fbUpdate = update;
+        window.fbRemove = remove;
+        window.firebaseReady = true;
+        window.dispatchEvent(new Event('firebase-ready'));
+    </script>
 </head>
+
 <body>
     <section class="screen active" id="staff-login">
         <div class="hero">
@@ -16,8 +51,10 @@
                 <div class="hero-title">Admin Login</div>
                 <div class="hero-sub">Only admin can access the order and billing page.</div>
                 <div class="hero-actions">
-                    <input id="staff-user" type="text" placeholder="Admin username" class="table-card" style="text-align:left;">
-                    <input id="staff-pass" type="password" placeholder="Admin password" class="table-card" style="text-align:left;">
+                    <input id="staff-user" type="text" placeholder="Admin username" class="table-card"
+                        style="text-align:left;">
+                    <input id="staff-pass" type="password" placeholder="Admin password" class="table-card"
+                        style="text-align:left;">
                     <button class="btn-primary" id="staff-login-btn">Open Admin Page</button>
                 </div>
                 <div class="bill-sub" id="staff-error" style="color:#c0392b; margin-top:10px;"></div>
@@ -34,43 +71,242 @@
             <div class="logo">Smart<span>Bite</span></div>
             <div class="nav-right">
                 <div class="table-pill">Admin Dashboard</div>
-                <button class="btn-outline" id="clear-orders">Clear All</button>
+                <button class="btn-outline" id="clear-orders">Clear All Orders</button>
             </div>
         </nav>
 
-        <section class="dashboard">
-            <div class="dashboard-head">
-                <div>
-                    <div class="menu-title">Placed Orders & Bills</div>
-                    <div class="bill-sub">Live customer orders with bill totals, payment state, and order controls.</div>
-                </div>
-            </div>
-
-            <div class="kitchen-alert" id="kitchen-alert">
-                <div class="kitchen-alert-top">
+        <!-- Tab Buttons -->
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="orders">
+                🧾 Orders & Bills
+                <span class="tab-badge" id="orders-tab-badge">0</span>
+            </button>
+            <button class="admin-tab" data-tab="menu">
+                🍽️ Menu Management
+            </button>
+            <button class="admin-tab" data-tab="tables">
+                🪑 Table Management
+            </button>
+            <button class="admin-tab" data-tab="reviews">
+                ⭐ Reviews
+                <span class="tab-badge" id="reviews-tab-badge">0</span>
+            </button>
+        </div>
+        <div class="tab-panel active" id="tab-menu">
+            <section class="dashboard">
+                <div class="dashboard-head">
                     <div>
-                        <div class="kitchen-alert-title">Latest Table Order</div>
-                        <div class="bill-sub" id="kitchen-alert-meta">No new orders yet.</div>
+                        <div class="menu-title">Menu Management</div>
+                        <div class="bill-sub">Add, edit, or remove menu items — changes appear live on the customer
+                            site.
+                        </div>
                     </div>
-                    <span class="order-badge" id="kitchen-alert-count">0</span>
                 </div>
-                <ul class="order-list" id="kitchen-alert-items">
-                    <li>Waiting for the next table order.</li>
-                </ul>
-            </div>
 
-            <div class="dashboard-grid" id="orders-grid">
+                <!-- Add New Item Form -->
+                <div class="order-card" style="margin-bottom:20px;">
+                    <div class="order-top"><span>Add New Item</span></div>
+                    <div
+                        style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin-top:14px;">
+                        <input type="text" id="new-item-name" placeholder="Item name" class="table-card"
+                            style="text-align:left;">
+                        <input type="number" id="new-item-price" placeholder="Price (NRS)" class="table-card"
+                            style="text-align:left;">
+                        <input type="text" id="new-item-category" placeholder="Category" class="table-card"
+                            style="text-align:left;">
+                        <input type="text" id="new-item-image" placeholder="Image URL" class="table-card"
+                            style="text-align:left;">
+                    </div>
+                    <button class="btn-primary" id="add-item-btn" style="margin-top:14px;">+ Add Item</button>
+                    <div class="bill-sub" id="add-item-error" style="color:#c0392b; margin-top:8px;"></div>
+                </div>
+                <!-- Menu Items Table -->
+                <div class="order-card">
+                    <div class="order-top"><span>Current Menu</span><span class="order-badge" id="menu-count">0</span>
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; margin-top:14px;">
+                        <thead>
+                            <tr style="text-align:left; border-bottom:1px solid var(--border, #ddd);">
+                                <th style="padding:8px;">Image</th>
+                                <th style="padding:8px;">Name</th>
+                                <th style="padding:8px;">Price</th>
+                                <th style="padding:8px;">Category</th>
+                                <th style="padding:8px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="menu-table-body">
+                            <tr>
+                                <td colspan="5" style="padding:14px;">Loading menu...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+        <div class="tab-panel" id="tab-tables">
+            <section class="dashboard">
+                <div class="dashboard-head">
+                    <div>
+                        <div class="menu-title">Table Management</div>
+                        <div class="bill-sub">Add or remove tables — changes appear live on the customer site.</div>
+                    </div>
+                </div>
+
+                <div class="order-card" style="margin-bottom:20px;">
+                    <div class="order-top"><span>Add New Table</span></div>
+                    <div style="display:flex; gap:10px; margin-top:14px; align-items:center;">
+                        <input type="number" id="new-table-number" placeholder="Table number (e.g. 7)"
+                            class="table-card" style="text-align:left; max-width:220px;">
+                        <button class="btn-primary" id="add-table-btn">+ Add Table</button>
+                    </div>
+                    <div class="bill-sub" id="add-table-error" style="color:#c0392b; margin-top:8px;"></div>
+                </div>
+
                 <div class="order-card">
                     <div class="order-top">
-                        <span>Waiting for orders</span>
-                        <span class="order-badge">0</span>
+                        <span>Current Tables</span>
+                        <span class="order-badge" id="table-count">0</span>
                     </div>
-                    <ul class="order-list">
-                        <li>No orders yet. Send one from the menu screen.</li>
+                    <div id="tables-admin-grid"
+                        style="display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; margin-top:14px;">
+                        <div class="bill-sub">Loading tables...</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+
+        <div class="tab-panel active" id="tab-orders">
+            <section class="dashboard">
+                <div class="dashboard-head">
+                    <div>
+                        <div class="menu-title">Placed Orders & Bills</div>
+                        <div class="bill-sub">Live customer orders with bill totals, payment state, and order controls.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kitchen-alert" id="kitchen-alert">
+                    <div class="kitchen-alert-top">
+                        <div>
+                            <div class="kitchen-alert-title">Latest Table Order</div>
+                            <div class="bill-sub" id="kitchen-alert-meta">No new orders yet.</div>
+                        </div>
+                        <span class="order-badge" id="kitchen-alert-count">0</span>
+                    </div>
+                    <ul class="order-list" id="kitchen-alert-items">
+                        <li>Waiting for the next table order.</li>
                     </ul>
                 </div>
-            </div>
-        </section>
+
+                <div class="dashboard-grid" id="orders-grid">
+                    <div class="order-card">
+                        <div class="order-top">
+                            <span>Waiting for orders</span>
+                            <span class="order-badge">0</span>
+                        </div>
+                        <ul class="order-list">
+                            <li>No orders yet. Send one from the menu screen.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <!-- Tab: Reviews -->
+        <div class="tab-panel" id="tab-reviews">
+            <section class="dashboard">
+                <div class="dashboard-head">
+                    <div>
+                        <div class="menu-title">Customer Reviews</div>
+                        <div class="bill-sub">Search, view, and remove reviews from here.</div>
+                    </div>
+                </div>
+
+                <!-- Search + Stats -->
+                <div class="order-card" style="margin-bottom:20px;">
+                    <div class="order-top">
+                        <span>Reviews Overview</span>
+                        <span class="order-badge" id="reviews-admin-count">0</span>
+                    </div>
+                    <div style="display:flex; gap:20px; margin-top:14px; flex-wrap:wrap;">
+                        <div
+                            style="background:#f8f9fa; border-radius:14px; padding:14px 20px; text-align:center; min-width:100px;">
+                            <div style="font-size:1.8rem; font-weight:700;" id="admin-avg-score">-</div>
+                            <div class="bill-sub">Avg Rating</div>
+                        </div>
+                        <div
+                            style="background:#f8f9fa; border-radius:14px; padding:14px 20px; text-align:center; min-width:100px;">
+                            <div style="font-size:1.8rem; font-weight:700;" id="admin-five-star">0</div>
+                            <div class="bill-sub">5 Star Reviews</div>
+                        </div>
+                        <div
+                            style="background:#f8f9fa; border-radius:14px; padding:14px 20px; text-align:center; min-width:100px;">
+                            <div style="font-size:1.8rem; font-weight:700;" id="admin-one-star">0</div>
+                            <div class="bill-sub">1 Star Reviews</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:14px;">
+                        <input type="text" id="admin-reviews-search" placeholder="🔍 Search by name or comment..."
+                            class="table-card" style="text-align:left; width:100%; max-width:400px;">
+                    </div>
+                </div>
+
+                <!-- Reviews List -->
+                <div class="order-card">
+                    <div class="order-top"><span>All Reviews</span></div>
+                    <div id="admin-reviews-list" style="margin-top:14px; display:grid; gap:14px;">
+                        <div class="bill-sub">Loading reviews...</div>
+                    </div>
+                </div>
+            </section>
+        </div><!-- Tab: Reviews -->
+        <div class="tab-panel" id="tab-reviews">
+            <section class="dashboard">
+                <div class="dashboard-head">
+                    <div>
+                        <div class="menu-title">Customer Reviews</div>
+                        <div class="bill-sub">Search, view, and remove reviews from here.</div>
+                    </div>
+                </div>
+
+                <!-- Search + Stats -->
+                <div class="order-card" style="margin-bottom:20px;">
+                    <div class="order-top">
+                        <span>Reviews Overview</span>
+                        <span class="order-badge" id="reviews-admin-count">0</span>
+                    </div>
+                    <div style="display:flex; gap:20px; margin-top:14px; flex-wrap:wrap;">
+                        <div
+                            style="background:#f8f9fa; border-radius:14px; padding:14px 20px; text-align:center; min-width:100px;">
+                            <div style="font-size:1.8rem; font-weight:700;" id="admin-avg-score">-</div>
+                            <div class="bill-sub">Avg Rating</div>
+                        </div>
+                        <div
+                            style="background:#f8f9fa; border-radius:14px; padding:14px 20px; text-align:center; min-width:100px;">
+                            <div style="font-size:1.8rem; font-weight:700;" id="admin-five-star">0</div>
+                            <div class="bill-sub">5 Star Reviews</div>
+                        </div>
+                        <div
+                            style="background:#f8f9fa; border-radius:14px; padding:14px 20px; text-align:center; min-width:100px;">
+                            <div style="font-size:1.8rem; font-weight:700;" id="admin-one-star">0</div>
+                            <div class="bill-sub">1 Star Reviews</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:14px;">
+                        <input type="text" id="admin-reviews-search" placeholder="🔍 Search by name or comment..."
+                            class="table-card" style="text-align:left; width:100%; max-width:400px;">
+                    </div>
+                </div>
+
+                <!-- Reviews List -->
+                <div class="order-card">
+                    <div class="order-top"><span>All Reviews</span></div>
+                    <div id="admin-reviews-list" style="margin-top:14px; display:grid; gap:14px;">
+                        <div class="bill-sub">Loading reviews...</div>
+                    </div>
+                </div>
+            </section>
+        </div>
     </section>
 
     <div class="toast info" id="staff-toast">New order received</div>
@@ -107,12 +343,19 @@
             return `NRS ${Number(value).toFixed(2)}`;
         }
 
-        function getOrders() {
-            return JSON.parse(localStorage.getItem('smartbite-orders') || '[]');
-        }
+        let liveOrders = [];   // live mirror of Firebase orders
 
-        function saveOrders(orders) {
-            localStorage.setItem('smartbite-orders', JSON.stringify(orders));
+        function startOrdersAdminListener() {
+            const ordersRef = window.fbRef(window.firebaseDB, 'orders');
+            window.fbOnValue(ordersRef, (snapshot) => {
+                const data = snapshot.val();
+                liveOrders = data
+                    ? Object.entries(data).map(([id, order]) => ({ id, ...order }))
+                    : [];
+                // Sort newest first
+                liveOrders.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                handleIncomingOrders(true);
+            });
         }
 
         function updateKitchenAlert(order) {
@@ -175,7 +418,10 @@
         }
 
         function renderOrders(highlightUntilId = 0) {
-            const orders = getOrders();
+            const orders = liveOrders;
+            // Update the tab badge with pending order count
+            const pending = orders.filter(o => o.status !== 'Completed').length;
+            document.getElementById('orders-tab-badge').textContent = String(pending);
             ordersGrid.innerHTML = '';
 
             if (orders.length === 0) {
@@ -254,13 +500,15 @@
             }
         });
 
-        clearBtn.addEventListener('click', () => {
+        clearBtn.addEventListener('click', async () => {
             initAudio();
-            localStorage.removeItem('smartbite-orders');
+            if (!confirm('Delete ALL orders permanently?')) return;
+            const ordersRef = window.fbRef(window.firebaseDB, 'orders');
+            await window.fbRemove(ordersRef);
             sessionStorage.removeItem('smartbite-last-seen');
             lastSeenOrderId = 0;
             lastCount = 0;
-            renderOrders();
+            showToast('All orders cleared.');
         });
 
         if (sessionStorage.getItem('smartbite-auth') === 'true' && sessionStorage.getItem('smartbite-role') === 'admin') {
@@ -269,46 +517,43 @@
             showLogin();
         }
 
-        ordersGrid.addEventListener('click', (event) => {
+        ordersGrid.addEventListener('click', async (event) => {
             const button = event.target.closest('button[data-action]');
             if (!button) return;
 
             const action = button.dataset.action;
-            const orderId = Number(button.dataset.id);
-            const orders = getOrders();
-            const order = orders.find((item) => item.id === orderId);
+            const orderId = button.dataset.id;   // now a Firebase string key, not a number
+            const order = liveOrders.find((item) => item.id === orderId);
 
             if (!order) return;
 
+            const orderRef = window.fbRef(window.firebaseDB, `orders/${orderId}`);
+
             if (action === 'toggle-payment') {
                 const isPaid = (order.paymentStatus || 'Unpaid') === 'Paid';
-                order.paymentStatus = isPaid ? 'Unpaid' : 'Paid';
-                if (isPaid) {
-                    order.paymentMethod = '';
-                    order.walletNumber = '';
-                    order.paidAt = '';
-                } else {
-                    order.paymentMethod = order.paymentMethod || 'Cash Counter';
-                    order.walletNumber = order.walletNumber || `Table ${order.table}`;
-                    order.paidAt = order.paidAt || new Date().toLocaleTimeString();
-                }
-                saveOrders(orders);
-                showToast(`Table #${order.table} payment is ${order.paymentStatus}`);
+                const updates = isPaid
+                    ? { paymentStatus: 'Unpaid', paymentMethod: '', walletNumber: '', paidAt: '' }
+                    : {
+                        paymentStatus: 'Paid',
+                        paymentMethod: order.paymentMethod || 'Cash Counter',
+                        walletNumber: order.walletNumber || `Table ${order.table}`,
+                        paidAt: new Date().toLocaleTimeString()
+                    };
+                await window.fbUpdate(orderRef, updates);
+                showToast(`Table #${order.table} payment is ${updates.paymentStatus}`);
             }
 
             if (action === 'toggle-status') {
-                order.status = (order.status || 'Pending') === 'Completed' ? 'Pending' : 'Completed';
-                saveOrders(orders);
-                showToast(`Table #${order.table} order is ${order.status}`);
+                const newStatus = (order.status || 'Pending') === 'Completed' ? 'Pending' : 'Completed';
+                await window.fbUpdate(orderRef, { status: newStatus });
+                showToast(`Table #${order.table} order is ${newStatus}`);
             }
 
             if (action === 'delete') {
-                const filteredOrders = orders.filter((item) => item.id !== orderId);
-                saveOrders(filteredOrders);
+                await window.fbRemove(orderRef);
                 showToast(`Removed order for Table #${order.table}`);
             }
-
-            renderOrders();
+            // No need to call renderOrders() manually — the live listener handles it automatically
         });
 
         function showToast(message) {
@@ -319,35 +564,310 @@
         }
 
         function handleIncomingOrders(notify) {
-            const orders = getOrders();
+            const orders = liveOrders;
             const newCount = orders.length;
-            const newestId = orders.length ? orders[0].id : 0;
 
-            if (newCount > lastCount && newestId > lastSeenOrderId) {
-                if (notify) {
+            if (newCount > lastCount) {
+                if (notify && lastCount !== 0) {
                     initAudio();
                     playAlertSound();
                     showToast(`New order from Table #${orders[0].table}`);
                 }
-                lastSeenOrderId = newestId;
-                sessionStorage.setItem('smartbite-last-seen', String(lastSeenOrderId));
-                renderOrders(newestId);
+                renderOrders(orders[0]?.id);
             } else {
                 renderOrders();
             }
 
             lastCount = newCount;
         }
-
         window.addEventListener('storage', (event) => {
             if (event.key === 'smartbite-orders') {
                 handleIncomingOrders(true);
             }
         });
+        // ── Table Management ───────────────────────
+        let adminTables = [];
 
-        renderOrders();
-        handleIncomingOrders(false);
-        setInterval(() => handleIncomingOrders(false), 3000);
+        function startTablesAdminListener() {
+            const tablesRef = window.fbRef(window.firebaseDB, 'tables');
+            window.fbOnValue(tablesRef, (snapshot) => {
+                const data = snapshot.val();
+                adminTables = data
+                    ? Object.entries(data).map(([id, t]) => ({ id, ...t }))
+                    : [];
+                adminTables.sort((a, b) => a.number - b.number);
+                renderTablesAdmin();
+            });
+        }
+
+        function renderTablesAdmin() {
+            const grid = document.getElementById('tables-admin-grid');
+            const count = document.getElementById('table-count');
+            count.textContent = String(adminTables.length);
+
+            if (!adminTables.length) {
+                grid.innerHTML = '<div class="bill-sub">No tables yet.</div>';
+                return;
+            }
+
+            grid.innerHTML = adminTables.map((t) => `
+        <div style="background:#f8f9fa; border-radius:14px; padding:14px; text-align:center; border:1px solid #eee;">
+            <div style="font-weight:700; font-size:1rem; margin-bottom:8px;">Table ${t.number}</div>
+            <button class="btn-ghost delete-table-btn" data-id="${t.id}" 
+                style="color:#c0392b; font-size:0.82rem; padding:4px 10px;">
+                Remove
+            </button>
+        </div>
+    `).join('');
+        }
+
+        // Add new table
+        document.getElementById('add-table-btn').addEventListener('click', async () => {
+            const number = Number(document.getElementById('new-table-number').value);
+            const errorBox = document.getElementById('add-table-error');
+
+            if (!number || number < 1) {
+                errorBox.textContent = 'Please enter a valid table number.';
+                return;
+            }
+
+            // Check if table number already exists
+            const exists = adminTables.some((t) => t.number === number);
+            if (exists) {
+                errorBox.textContent = `Table ${number} already exists.`;
+                return;
+            }
+
+            errorBox.textContent = '';
+            const tableRef = window.fbRef(window.firebaseDB, `tables/${number}`);
+            await window.fbSet(tableRef, { number });
+            document.getElementById('new-table-number').value = '';
+            showToast(`Table ${number} added!`);
+        });
+
+        // Remove table
+        document.getElementById('tables-admin-grid').addEventListener('click', async (event) => {
+            const btn = event.target.closest('.delete-table-btn');
+            if (!btn) return;
+
+            const id = btn.dataset.id;
+            const table = adminTables.find((t) => t.id === id);
+            if (!table) return;
+
+            if (!confirm(`Remove Table ${table.number} permanently?`)) return;
+            const tableRef = window.fbRef(window.firebaseDB, `tables/${id}`);
+            await window.fbRemove(tableRef);
+            showToast(`Table ${table.number} removed.`);
+        });
+        // ── End Table Management ────────────────────
+        // ── Menu Management ────────────────────────
+        let adminMenuItems = [];
+
+        function startMenuAdminListener() {
+            const menuRef = window.fbRef(window.firebaseDB, 'menu');
+            window.fbOnValue(menuRef, (snapshot) => {
+                const data = snapshot.val();
+                adminMenuItems = data
+                    ? Object.entries(data).map(([id, item]) => ({ id, ...item }))
+                    : [];
+                renderMenuTable();
+            });
+        }
+
+        function renderMenuTable() {
+            const tbody = document.getElementById('menu-table-body');
+            const count = document.getElementById('menu-count');
+            count.textContent = String(adminMenuItems.length);
+
+            if (!adminMenuItems.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="padding:14px;">No menu items yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = adminMenuItems.map((item) => `
+                <tr style="border-bottom:1px solid var(--border, #eee);" data-id="${item.id}">
+                    <td style="padding:8px;"><img src="${item.image}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;"></td>
+                    <td style="padding:8px;"><input type="text" class="edit-name" value="${item.name}" style="width:100%; border:1px solid #ddd; border-radius:6px; padding:4px;"></td>
+                    <td style="padding:8px;"><input type="number" class="edit-price" value="${item.price}" style="width:80px; border:1px solid #ddd; border-radius:6px; padding:4px;"></td>
+                    <td style="padding:8px;"><input type="text" class="edit-category" value="${item.category || ''}" style="width:100px; border:1px solid #ddd; border-radius:6px; padding:4px;"></td>
+                    <td style="padding:8px; white-space:nowrap;">
+                        <button class="btn-outline save-item-btn" data-id="${item.id}" style="padding:6px 10px; font-size:0.85rem;">Save</button>
+                        <button class="btn-ghost delete-item-btn" data-id="${item.id}" style="padding:6px 10px; font-size:0.85rem; color:#c0392b;">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('add-item-btn').addEventListener('click', async () => {
+            const name = document.getElementById('new-item-name').value.trim();
+            const price = Number(document.getElementById('new-item-price').value);
+            const category = document.getElementById('new-item-category').value.trim();
+            const image = document.getElementById('new-item-image').value.trim();
+            const errorBox = document.getElementById('add-item-error');
+
+            if (!name || !price || !image) {
+                errorBox.textContent = 'Name, price, and image URL are required.';
+                return;
+            }
+            errorBox.textContent = '';
+
+            const menuRef = window.fbRef(window.firebaseDB, 'menu');
+            const newItemRef = window.fbPush(menuRef);
+            await window.fbSet(newItemRef, { name, price, category: category || 'Other', image });
+
+            document.getElementById('new-item-name').value = '';
+            document.getElementById('new-item-price').value = '';
+            document.getElementById('new-item-category').value = '';
+            document.getElementById('new-item-image').value = '';
+            showToast('Menu item added!');
+        });
+
+        document.getElementById('menu-table-body').addEventListener('click', async (event) => {
+            const saveBtn = event.target.closest('.save-item-btn');
+            const deleteBtn = event.target.closest('.delete-item-btn');
+
+            if (saveBtn) {
+                const id = saveBtn.dataset.id;
+                const row = saveBtn.closest('tr');
+                const name = row.querySelector('.edit-name').value.trim();
+                const price = Number(row.querySelector('.edit-price').value);
+                const category = row.querySelector('.edit-category').value.trim();
+
+                const itemRef = window.fbRef(window.firebaseDB, `menu/${id}`);
+                await window.fbUpdate(itemRef, { name, price, category });
+                showToast('Item updated!');
+            }
+
+            if (deleteBtn) {
+                const id = deleteBtn.dataset.id;
+                if (!confirm('Delete this menu item permanently?')) return;
+                const itemRef = window.fbRef(window.firebaseDB, `menu/${id}`);
+                await window.fbRemove(itemRef);
+                showToast('Item deleted.');
+            }
+        });
+        // ── Tab Navigation ──────────────────────────
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.admin-tab').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tabName);
+            });
+            // Update tab panels
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        document.querySelectorAll('.admin-tab').forEach(btn => {
+            btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+        });
+        function initAdminListeners() {
+            startMenuAdminListener();
+            startTablesAdminListener();
+            startReviewsAdminListener();
+        }
+
+        if (window.firebaseReady) {
+            initAdminListeners();
+        } else {
+            window.addEventListener('firebase-ready', initAdminListeners);
+        }
+        // ── End Menu Management ─────────────────────
+        // ── Reviews Management ─────────────────────
+        let adminReviews = [];
+
+        function startReviewsAdminListener() {
+            const reviewsRef = window.fbRef(window.firebaseDB, 'reviews');
+            window.fbOnValue(reviewsRef, (snapshot) => {
+                const data = snapshot.val();
+                adminReviews = data
+                    ? Object.entries(data).map(([id, r]) => ({ id, ...r }))
+                    : [];
+                adminReviews.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                renderAdminReviews();
+            });
+        }
+
+        function renderAdminReviews() {
+            const list = document.getElementById('admin-reviews-list');
+            const count = document.getElementById('reviews-admin-count');
+            const avgScore = document.getElementById('admin-avg-score');
+            const fiveStar = document.getElementById('admin-five-star');
+            const oneStar = document.getElementById('admin-one-star');
+            const tabBadge = document.getElementById('reviews-tab-badge');
+            const searchQuery = document.getElementById('admin-reviews-search').value.trim().toLowerCase();
+
+            // Update stats
+            count.textContent = String(adminReviews.length);
+            tabBadge.textContent = String(adminReviews.length);
+
+            if (adminReviews.length) {
+                const avg = (adminReviews.reduce((s, r) => s + r.stars, 0) / adminReviews.length).toFixed(1);
+                avgScore.textContent = avg;
+                fiveStar.textContent = adminReviews.filter(r => r.stars === 5).length;
+                oneStar.textContent = adminReviews.filter(r => r.stars === 1).length;
+            } else {
+                avgScore.textContent = '-';
+                fiveStar.textContent = '0';
+                oneStar.textContent = '0';
+            }
+
+            // Apply search filter
+            const filtered = searchQuery
+                ? adminReviews.filter(r =>
+                    (r.name || '').toLowerCase().includes(searchQuery) ||
+                    (r.comment || '').toLowerCase().includes(searchQuery)
+                )
+                : adminReviews;
+
+            if (!filtered.length) {
+                list.innerHTML = `<div class="bill-sub">${searchQuery ? 'No reviews match your search.' : 'No reviews yet.'}</div>`;
+                return;
+            }
+
+            list.innerHTML = filtered.map(r => `
+        <div style="background:#f8f9fa; border-radius:16px; padding:16px 18px; border:1px solid #eee;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                <div>
+                    <div style="font-weight:700; color:#1a1d23;">
+                        ${r.name || 'Anonymous Guest'} 
+                        <span style="font-weight:400; color:#6a6f7a; font-size:0.85rem;">· Table #${r.table} · ${r.date}</span>
+                    </div>
+                    <div style="color:#f5a623; margin:4px 0; font-size:1rem;">
+                        ${'★'.repeat(r.stars)}<span style="color:#ddd">${'★'.repeat(5 - r.stars)}</span>
+                    </div>
+                    ${r.comment ? `<div style="color:#3d3d3d; font-size:0.93rem; line-height:1.6;">"${r.comment}"</div>` : '<div style="color:#aaa; font-size:0.88rem;">No comment left.</div>'}
+                </div>
+                <button class="btn-ghost delete-review-btn" data-id="${r.id}" 
+                    style="color:#c0392b; font-size:0.82rem; white-space:nowrap; flex-shrink:0;">
+                    🗑️ Remove
+                </button>
+            </div>
+        </div>
+    `).join('');
+        }
+
+        // Search listener
+        document.getElementById('admin-reviews-search').addEventListener('input', renderAdminReviews);
+
+        // Delete review
+        document.getElementById('admin-reviews-list').addEventListener('click', async (event) => {
+            const btn = event.target.closest('.delete-review-btn');
+            if (!btn) return;
+            if (!confirm('Remove this review permanently?')) return;
+            const id = btn.dataset.id;
+            const reviewRef = window.fbRef(window.firebaseDB, `reviews/${id}`);
+            await window.fbRemove(reviewRef);
+            showToast('Review removed.');
+        });
+        // ── End Reviews Management ──────────────────
+        if (window.firebaseReady) {
+            startOrdersAdminListener();
+        } else {
+            window.addEventListener('firebase-ready', startOrdersAdminListener);
+        }
     </script>
 </body>
+
 </html>
